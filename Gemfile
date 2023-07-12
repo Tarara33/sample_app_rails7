@@ -15,6 +15,7 @@ group :development, :test do
   gem "sqlite3", "1.4.2"
   gem "debug",   "1.5.0", platforms: %i[ mri mingw x64_mingw ]
   gem "rspec-rails"
+  gem 'factory_bot_rails'
 end
 
 group :development do

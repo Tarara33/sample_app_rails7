@@ -17,9 +17,9 @@ RSpec.describe "StaticPages", type: :request do
       expect(response).to have_http_status :ok
     end
     
-    it 'Home | Ruby on Rails Tutorial Sample Appが含まれること' do
+    it 'titleがRuby on Rails Tutorial Sample Appであること' do
       get static_pages_home_path
-      expect(response.body).to include "Home | #{base_title}"
+      expect(response.body).to include "<title>#{base_title}</title>"
     end
   end
    

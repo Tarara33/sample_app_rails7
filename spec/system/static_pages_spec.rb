@@ -8,7 +8,7 @@ RSpec.describe "StaticPages", type: :system do
   
  
   describe "root" do
-    it "root_pathへのリンクが2つ、help, about, contact, signupへのリンクが表示されていること" do
+    it "root_pathへのリンクが2つ、help, about, contact, へのリンクが表示されていること" do
       visit root_path
       link_to_root = page.find_all("a[href=\"#{root_path}\"]")#ダブルクォート二つ使うのでエスケープできるように\"\"で式展開かこむ
       

@@ -12,6 +12,5 @@ RSpec.describe "Users", type: :request do
      expect(response.body).to include full_title('Sign up')
    end
   end
-  
 
 end

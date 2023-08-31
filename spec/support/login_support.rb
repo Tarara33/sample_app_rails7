@@ -1,11 +1,20 @@
 module LoginSupport
-  def logged_in?
-    !session[:user_id].nil?
+  module System
+    def log_in(user)
+      visit login_path
+       fill_in 'Email', with: user.email
+       fill_in 'Password', with: user.password
+       click_button 'Log in'
+    end
   end
   
-  # テストユーザーとしてログインする
-  def log_in_as(user)
-    session[:user_id] = user.id
+  module Request
+    def log_in(user)
+      post login_path, params: { session: {email: user.email, password: user.password} }
+    end
+    
+    def logged_in?
+       !session[:user_id].nil?
+    end
   end
 end
- 

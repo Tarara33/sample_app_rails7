@@ -18,4 +18,23 @@ RSpec.describe "Users", type: :system do
      end
    end
  end
+ 
+ describe '#index' do
+  let!(:user) { create(:user, :admin) }
+  let!(:another_user) {create(:user, :another) }
+  
+  it 'adminユーザならdeleteリンクが表示されること' do
+     log_in(user)
+     visit users_path
+ 
+     expect(page).to have_link 'delete'
+   end
+  
+   it 'adminユーザでなければdeleteリンクが表示されないこと' do
+     log_in(another_user)
+     visit users_path
+ 
+     expect(page).to_not have_link 'delete'
+   end
+ end
 end

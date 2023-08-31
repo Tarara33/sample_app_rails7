@@ -69,6 +69,15 @@ RSpec.describe "Users", type: :request do
       expect(response.body).to include full_title('Edit user')
     end
     
+    it 'admin属性は変更できないこと' do
+      # userはこの後adminユーザになるので違うユーザにしておく
+      log_in user = create(:user, :another)
+      expect(user).to_not be_admin
+      patch user_path(user), params: { user: { password: 'password', password_confirmation: 'password', admin: true } }
+      user.reload
+      expect(user).to_not be_admin
+    end
+    
     context '無効な値の場合' do
       before do
         log_in(user)
@@ -143,5 +152,72 @@ RSpec.describe "Users", type: :request do
         expect(response).to redirect_to root_path
       end
     end
+  end
+  
+  
+  describe 'pagination' do
+    let(:user) { create(:user) }
+    before do
+      30.times do
+        create(:continuous_users)
+      end
+      log_in(user)
+      get users_path
+    end
+    
+    it 'div.paginationが存在すること' do
+      expect(response.body).to include '<div role="navigation" aria-label="Pagination" class="pagination">'
+    end
+    
+    it 'ユーザごとのリンクが存在すること' do
+      User.paginate(page: 1).each do |user|
+        expect(response.body).to include "<a href=\"#{user_path(user)}\">"
+      end
+    end
+    
+    it '2つのdiv.paginationが存在すること' do
+      # HTMLコード内の<div class="pagination">要素を全て取得
+      pagination_divs = response.body.scan('<div role="navigation" aria-label="Pagination" class="pagination">')
+      
+      # 2つの要素が存在することを確認
+      expect(pagination_divs.length).to eq(2)
+    end
+  end
+  
+  
+  describe 'DELETE /users/{id}' do
+    let!(:user) { create(:user, :admin) }
+    let!(:another_user) {create(:user, :another) }
+    
+    context '未ログインの場合' do
+      it '削除できないこと' do
+        expect{ delete user_path(user)}.to_not change(User, :count)
+      end
+      
+      it 'ログインページにリダイレクトすること' do
+        delete user_path(user)
+        expect(response).to redirect_to login_path
+      end
+    end
+    
+    context 'adminユーザーでない場合' do
+      it '削除できないこと' do
+        log_in(another_user)
+        expect{ delete user_path(user)}.to_not change(User, :count)
+      end
+      
+      it 'rootにリダイレクトすること' do
+        log_in(another_user)
+        delete user_path(user)
+        expect(response).to redirect_to root_path
+      end
+    end
+    
+    context 'adminユーザでログイン済みの場合' do
+     it '削除できること' do
+       log_in user
+       expect { delete user_path(another_user) }.to change(User, :count).by(-1)
+     end
+   end
   end
 end

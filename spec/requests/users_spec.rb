@@ -14,9 +14,21 @@ RSpec.describe "Users", type: :request do
   end
   
   
+  describe 'GET /users' do
+    let(:user) { create(:user) }
+    let(:no_activate_user) { create(:no_activate_user) }
+    
+    it 'activateされていないユーザは表示されないこと' do
+     log_in user
+     get users_path
+     expect(response.body).to_not include no_activate_user.name
+    end
+  end
+  
   describe 'get /users/{id}/edit' do
     let(:user) { create(:user) }
-    
+    let(:no_activate_user) { create(:no_activate_user) }
+      
     it 'タイトルがEdit user | Ruby on Rails Tutorial Sample Appであること' do
      log_in user
      get edit_user_path(user)
@@ -38,6 +50,12 @@ RSpec.describe "Users", type: :request do
         get edit_user_path(user)
         log_in(user)
         expect(response).to redirect_to edit_user_path(user)
+      end
+      
+     it '有効化されていないユーザの場合はrootにリダイレクトすること' do
+        log_in user
+        get user_path(no_activate_user)
+        expect(response).to redirect_to root_path
       end
     end
     

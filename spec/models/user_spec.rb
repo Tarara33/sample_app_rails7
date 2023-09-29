@@ -79,5 +79,60 @@ RSpec.describe User, type: :model do
    end
  end
  
+  describe '#follow and #unfollow' do
+    let(:user) { create(:user) }
+    let(:another_user) { create(:user, :another) }
+    
+    it 'followするとfollowing?がtrueになること' do
+      expect(user.following?(another_user)).to_not be_truthy
+      user.follow(another_user)
+      expect(user.following?(another_user)).to be_truthy
+    end
+    
+    it 'unfollowするとfollowing?がfalseになること' do
+      user.follow(another_user)
+      expect(user.following?(another_user)).to_not be_falsey
+      user.unfollow(another_user)
+      expect(user.following?(another_user)).to be_falsey
+    end
+    
+    it 'followするとfollowing?がtrueになること' do
+      expect(user.following?(another_user)).to_not be_truthy
+      user.follow(another_user)
+      expect(another_user.followers.include?(user)).to be_truthy
+      expect(user.following?(another_user)).to be_truthy
+    end
+  end
+  
+  describe '#feed' do
+    let(:posted_by_user){ create(:post_by_user) }
+    let(:posted_by_lana){ create(:post_by_lana) }
+    let(:posted_by_archer){ create(:post_by_archer) }
+    let(:user) { posted_by_user.user }
+    let(:lana) { posted_by_lana.user }
+    let(:another) { posted_by_archer.user }
+  
+    before do
+      user.follow(lana)
+    end
+  
+    it 'フォローしているユーザの投稿が表示されること' do
+      lana.microposts.each do |lana_posts|
+        expect(user.feed.include?(lana_posts)).to be_truthy
+      end
+    end
+    
+    it '自分自身の投稿が表示されること' do
+      user.microposts.each do |self_posts|
+        expect(user.feed.include?(self_posts)).to be_truthy
+      end
+    end
+    
+    it 'フォローしていないユーザの投稿は表示されないこと' do
+      another.microposts.each do |another_posts|
+        expect(user.feed.include?(another_posts)).to be_falsey
+      end
+    end
+  end
 end
 

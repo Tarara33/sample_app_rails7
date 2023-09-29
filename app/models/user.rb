@@ -12,6 +12,15 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 6 }, allow_nil: true
   
   has_many :microposts, dependent: :destroy
+  has_many :active_relationships, class_name:  "Relationship",
+                                  foreign_key: "follower_id",
+                                  dependent:   :destroy
+  has_many :passive_relationships, class_name:  "Relationship",
+                                   foreign_key: "followed_id",
+                                   dependent:   :destroy
+  has_many :following, through: :active_relationships, source: :followed
+  has_many :followers, through: :passive_relationships, source: :follower
+  
   
   # 渡された文字列のハッシュ値を返す
   def User.digest(string)
@@ -78,10 +87,28 @@ class User < ApplicationRecord
     reset_sent_at < 2.hours.ago
   end
   
-  # 試作feedの定義
-  # 完全な実装は次章の「ユーザーをフォローする」を参照
+  # ユーザーのステータスフィードを返す
   def feed
-    Micropost.where("user_id = ?", id)
+    following_ids = "SELECT followed_id FROM relationships
+                     WHERE  follower_id = :user_id"
+    Micropost.where("user_id IN (#{following_ids})
+                     OR user_id = :user_id", user_id: id)
+             .includes(:user, image_attachment: :blob)
+  end
+
+    # ユーザーをフォローする
+  def follow(other_user)
+    following << other_user unless  self == other_user
+  end
+  
+  # ユーザーをフォロー解除する
+  def unfollow(other_user)
+    following.delete(other_user)
+  end
+  
+  # 現在のユーザーが他のユーザーをフォローしていればtrueを返す
+  def following?(other_user)
+    following.include?(other_user)
   end
   
   private
@@ -96,4 +123,5 @@ class User < ApplicationRecord
       self.activation_token  = User.new_token
       self.activation_digest = User.digest(activation_token)
     end
+    
 end

@@ -14,6 +14,11 @@ FactoryBot.define do
     trait :admin do
       admin { true }
     end
+    
+    trait :lana do
+      name { "lana" }
+      email { "lana@example.com" }
+    end
   end
     
   factory :no_activate_user, class: User do
